@@ -26,7 +26,6 @@ void create_inventory() {
     int *quantities = NULL;
     
     // TODO: Allocate memory for item_ids array (5 integers)
-    // Hint: item_ids = (int*)malloc(inventory_size * sizeof(int));
     
     
     // TODO: Check if malloc succeeded by comparing item_ids to NULL
@@ -100,9 +99,7 @@ void expand_inventory() {
     printf("\nPlayer acquires more items! Expanding inventory...\n");
     
     // TODO: Use realloc to expand item_ids from 3 to 6 integers
-    // Store the result back in item_ids
-    // Hint: item_ids = (int*)realloc(item_ids, expanded_size * sizeof(int));
-    
+    // Store the result back in item_ids    
     
     // TODO: Check if realloc succeeded
     
@@ -137,36 +134,66 @@ void expand_inventory() {
 }
 
 // =============================================================================
-// PART 3: FIX MEMORY LEAKS
+// PART 3: MEMORY LEAK DEMONSTRATION
 // =============================================================================
-// This function demonstrates a memory leak by allocating memory in a loop
-// without freeing it. You'll fix this by adding proper cleanup.
+// This function demonstrates a memory leak by allocating memory without freeing it.
+// Run this version first to see what happens when memory is never freed.
 
-void fix_memory_leak() {
-    printf("\n=== PART 3: FIX MEMORY LEAKS ===\n");
+void memory_leak_demo() {
+    printf("\n=== PART 3A: MEMORY LEAK DEMONSTRATION ===\n");
+    printf("Allocating memory in a loop WITHOUT freeing...\n");
     
-    printf("Simulating item pickups (10 iterations)...\n");
-    
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 1000; i++) {
         // Allocate memory for a temporary item
-        int *temp_item = (int*)malloc(sizeof(int));
+        int *temp_item = (int*)malloc(1000 * sizeof(int));
         
         if (temp_item == NULL) {
-            printf("Allocation failed!\n");
+            printf("Allocation failed at iteration %d!\n", i);
             return;
         }
         
-        *temp_item = 300 + i;
-        printf("  Pickup %d: Item %d\n", i + 1, *temp_item);
+        // Use the memory
+        temp_item[0] = 300 + i;
         
-        // TODO: Add free() here to prevent memory leak
-        // Without this, we leak sizeof(int) bytes per iteration
+        // NO FREE - Memory is leaked!
+        // Each iteration leaks 4000 bytes (1000 ints * 4 bytes each)
+    }
+    
+    printf("Loop complete. Leaked approximately %zu KB of memory.\n", 
+           (1000 * 1000 * sizeof(int)) / 1024);
+    printf("This memory cannot be reused until the program ends.\n");
+}
+
+// =============================================================================
+// PART 3B: FIXED VERSION - NO MEMORY LEAK
+// =============================================================================
+// This function properly frees memory after each allocation.
+// Compare the behavior of this version to the leaking version above.
+
+void memory_leak_fixed() {
+    printf("\n=== PART 3B: FIXED VERSION - NO MEMORY LEAK ===\n");
+    printf("Allocating memory in a loop WITH proper freeing...\n");
+    
+    for (int i = 0; i < 1000; i++) {
+        // Allocate memory for a temporary item
+        int *temp_item = (int*)malloc(1000 * sizeof(int));
+        
+        if (temp_item == NULL) {
+            printf("Allocation failed at iteration %d!\n", i);
+            return;
+        }
+        
+        // Use the memory
+        temp_item[0] = 300 + i;
+        
+        // TODO: Free the memory to prevent the leak
         
         
     }
     
-    printf("Loop complete. Check: did we leak memory?\n");
-    printf("Hint: Without free(), we leaked %zu bytes total.\n", 10 * sizeof(int));
+    printf("Loop complete. Memory properly freed after each use.\n");
+    printf("Total memory allocated and freed: %zu KB\n", 
+           (1000 * 1000 * sizeof(int)) / 1024);
 }
 
 // =============================================================================
@@ -224,8 +251,12 @@ int main() {
     // Part 2: Dynamic growth with realloc
     expand_inventory();
     
-    // Part 3: Identify and fix memory leaks
-    fix_memory_leak();
+    // Part 3: Memory leak demonstration and fix
+    printf("\n--- First, observe the memory leak ---\n");
+    memory_leak_demo();
+    
+    printf("\n--- Now, see the properly managed version ---\n");
+    memory_leak_fixed();
     
     // Part 4: Handle pointers safely after freeing
     safe_pointer_handling();
